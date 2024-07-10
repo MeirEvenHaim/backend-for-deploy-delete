@@ -315,25 +315,26 @@ def get_book(id):
     book = Book.query.get_or_404(id)
     return jsonify(book.to_dict()), 200
 
-
-# Endpoint to update a book by ID (admin only)
 @app.route('/books/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_book(id):
-    if not is_admin():
+    current_user = get_jwt_identity()
+    if not is_admin(current_user):  # Assuming is_admin is a function to check admin role
         return jsonify({"msg": "Admins only!"}), 403
-    data = request.get_json()
+    
     book = Book.query.get_or_404(id)
 
-    book.book_name = data.get('book_name', book.book_name)
-    book.author = data.get('author', book.author)
-    book.date_of_publish = datetime.strptime(data.get('date_of_publish', book.date_of_publish.isoformat()), '%Y-%m-%d').date()
-    book.summary = data.get('summary', book.summary)
-    book.image = data.get('image', book.image)
-    book.series = data.get('series', book.series)
+    # Update book attributes based on FormData sent from front-end
+    book.book_name = request.form.get('book_name', book.book_name)
+    book.author = request.form.get('author', book.author)
+    book.date_of_publish = datetime.strptime(request.form.get('date_of_publish', book.date_of_publish.isoformat()), '%Y-%m-%d').date()
+    book.summary = request.form.get('summary', book.summary)
+    # Assuming 'image' and 'series' are also sent as form data fields
+    book.image = request.files.get('image') if request.files.get('image') else book.image
+    book.series = True if request.form.get('series') == 'true' else False if request.form.get('series') == 'false' else book.series
+
     db.session.commit()
     return jsonify(book.to_dict()), 200
-
 
 # Endpoint to delete a book by ID (admin only)
 @app.route('/books/<int:id>', methods=['DELETE'])
