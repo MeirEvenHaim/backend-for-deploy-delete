@@ -98,7 +98,7 @@ class Book(db.Model):
         self.series = series
 
     def __repr__(self):
-        return f"<Book(book_name='{self.book_name}', author='{self.author}')>"
+        return f"<Book(id='{self.id}', book_name='{self.book_name}', author='{self.author}, image='{self.image}')>\n"
 
     def to_dict(self):
         return {
@@ -346,13 +346,14 @@ def delete_book(id):
     book = Book.query.get_or_404(id)
     db.session.delete(book)
     db.session.commit()
-    return '', 204
+    return '', 200
 
 
 # Endpoint to get details of all books (public)
 @app.route('/books', methods=['GET'])
 def get_books():
     books = Book.query.all()
+    print(books)
     return jsonify([book.to_dict() for book in books]), 200
 
 
